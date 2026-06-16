@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>The Mystic Veil · Tarot Readings</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --night:    #0D0B1E;
+      --deep:     #150E30;
+      --violet:   #2D1B69;
+      --amethyst: #5A3E8F;
+      --gold:     #C9A84C;
+      --gold-lt:  #E8CC7A;
+      --rose:     #E8C4B8;
+      --moon:     #F0EBF8;
+      --mist:     #BBA8D8;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--night);
+      color: var(--moon);
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: 18px;
+      line-height: 1.65;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ─── STARFIELD ─────────────────────────────────────────── */
+    #stars-canvas {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    /* ─── LAYOUT SHELL ──────────────────────────────────────── */
+    .page {
+      position: relative;
+      z-index: 1;
+      max-width: 480px;
+      margin: 0 auto;
+      padding: 0 20px 60px;
+    }
+
+    /* ─── HERO ──────────────────────────────────────────────── */
+    .hero {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding-top: 56px;
+      text-align: center;
+      gap: 0;
+    }
+
+    /* tarot-card avatar frame */
+    .avatar-frame {
+      position: relative;
+      width: 148px;
+      height: 200px;
+      margin-bottom: 28px;
+    }
+
+    .avatar-card {
+      width: 100%;
+      height: 100%;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 2px solid var(--gold);
+      box-shadow:
+        0 0 0 6px rgba(201,168,76,0.12),
+        0 0 40px rgba(201,168,76,0.25),
+        0 20px 60px rgba(0,0,0,0.6);
+      position: relative;
+      animation: floatCard 6s ease-in-out infinite;
+    }
+
+    @keyframes floatCard {
+      0%,100% { transform: translateY(0) rotate(-1deg); }
+      50%      { transform: translateY(-8px) rotate(1deg); }
+    }
+
+    .avatar-card img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    /* gold corner ornaments */
+    .avatar-frame::before,
+    .avatar-frame::after {
+      content: '✦';
+      position: absolute;
+      color: var(--gold);
+      font-size: 18px;
+      opacity: 0.8;
+    }
+    .avatar-frame::before { top: -10px; left: -10px; }
+    .avatar-frame::after  { bottom: -10px; right: -10px; }
+
+    .glam-dot {
+      position: absolute;
+      color: var(--gold);
+      font-size: 14px;
+      opacity: 0.7;
+    }
+    .glam-dot.tl { top: -10px; right: -10px; }
+    .glam-dot.br { bottom: -10px; left: -10px; }
+
+    /* name */
+    .reader-name {
+      font-family: 'Cinzel', serif;
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      background: linear-gradient(135deg, var(--gold-lt) 0%, var(--gold) 50%, var(--rose) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 6px;
+    }
+
+    .reader-title {
+      font-family: 'Cinzel', serif;
+      font-size: 12px;
+      font-weight: 400;
+      letter-spacing: 0.3em;
+      color: var(--mist);
+      text-transform: uppercase;
+      margin-bottom: 20px;
+    }
+
+    /* divider */
+    .ornament-divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      width: 100%;
+      margin: 20px 0;
+      color: var(--gold);
+      font-size: 14px;
+      opacity: 0.7;
+    }
+    .ornament-divider::before,
+    .ornament-divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: linear-gradient(to right, transparent, var(--gold), transparent);
+    }
+
+    .bio {
+      font-size: 16px;
+      line-height: 1.8;
+      color: var(--mist);
+      font-style: italic;
+      max-width: 380px;
+      margin-bottom: 4px;
+    }
+
+    /* ─── SOCIAL LINKS ──────────────────────────────────────── */
+    .social-row {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+      margin: 24px 0 8px;
+      flex-wrap: wrap;
+    }
+
+    .social-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: rgba(45,27,105,0.6);
+      border: 1px solid rgba(201,168,76,0.35);
+      color: var(--gold);
+      text-decoration: none;
+      font-size: 20px;
+      transition: all 0.25s ease;
+      backdrop-filter: blur(6px);
+    }
+    .social-btn:hover,
+    .social-btn:focus {
+      background: rgba(201,168,76,0.15);
+      border-color: var(--gold);
+      transform: translateY(-3px);
+      box-shadow: 0 8px 24px rgba(201,168,76,0.2);
+      outline: none;
+    }
+    .social-btn svg { width: 22px; height: 22px; fill: currentColor; }
+
+    /* ─── SECTION HEADING ───────────────────────────────────── */
+    .section-eyebrow {
+      font-family: 'Cinzel', serif;
+      font-size: 10px;
+      letter-spacing: 0.4em;
+      text-transform: uppercase;
+      color: var(--gold);
+      opacity: 0.8;
+      text-align: center;
+      margin-bottom: 8px;
+    }
+    .section-title {
+      font-family: 'Cinzel', serif;
+      font-size: 22px;
+      font-weight: 600;
+      text-align: center;
+      color: var(--moon);
+      margin-bottom: 28px;
+      letter-spacing: 0.05em;
+    }
+
+    /* ─── BOOKING CARDS ─────────────────────────────────────── */
+    .booking-section { margin-top: 48px; }
+
+    .call-type-label {
+      font-family: 'Cinzel', serif;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--gold);
+      text-align: center;
+      margin: 32px 0 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .call-type-label::before,
+    .call-type-label::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: rgba(201,168,76,0.3);
+    }
+
+    .price-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .price-card {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: linear-gradient(135deg, rgba(45,27,105,0.45) 0%, rgba(21,14,48,0.7) 100%);
+      border: 1px solid rgba(201,168,76,0.2);
+      border-radius: 14px;
+      padding: 16px 20px;
+      gap: 12px;
+      backdrop-filter: blur(8px);
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .price-card:hover {
+      border-color: rgba(201,168,76,0.5);
+      box-shadow: 0 4px 24px rgba(201,168,76,0.1);
+    }
+
+    .price-info { flex: 1; }
+
+    .price-duration {
+      font-family: 'Cinzel', serif;
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--moon);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .price-duration .icon { font-size: 14px; color: var(--gold); }
+
+    .price-amount {
+      font-size: 14px;
+      color: var(--gold);
+      font-style: italic;
+      margin-top: 2px;
+    }
+
+    .book-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 10px 18px;
+      border-radius: 50px;
+      font-family: 'Cinzel', serif;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      cursor: pointer;
+      border: 1.5px solid var(--gold);
+      background: transparent;
+      color: var(--gold);
+      text-decoration: none;
+      white-space: nowrap;
+      transition: all 0.22s ease;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .book-btn:hover,
+    .book-btn:focus {
+      background: var(--gold);
+      color: var(--night);
+      box-shadow: 0 4px 20px rgba(201,168,76,0.4);
+      outline: none;
+    }
+    .book-btn:active { transform: scale(0.97); }
+
+
+
+    /* ─── WHAT TO EXPECT ────────────────────────────────────── */
+    .expect-section { margin-top: 56px; }
+
+    .expect-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .expect-card {
+      background: rgba(45,27,105,0.25);
+      border: 1px solid rgba(186,168,216,0.15);
+      border-radius: 14px;
+      padding: 18px 16px;
+      text-align: center;
+    }
+    .expect-icon { font-size: 28px; margin-bottom: 8px; }
+    .expect-label {
+      font-family: 'Cinzel', serif;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--gold);
+      letter-spacing: 0.1em;
+      margin-bottom: 6px;
+    }
+    .expect-desc {
+      font-size: 13px;
+      color: var(--mist);
+      line-height: 1.55;
+      font-style: italic;
+    }
+
+    /* ─── FOOTER ────────────────────────────────────────────── */
+    .footer {
+      margin-top: 56px;
+      text-align: center;
+      color: rgba(187,168,216,0.45);
+      font-size: 13px;
+      font-style: italic;
+    }
+    .footer a { color: var(--gold); text-decoration: none; opacity: 0.7; }
+
+    /* ─── MODAL OVERLAY ─────────────────────────────────────── */
+    .modal-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(8,5,20,0.85);
+      z-index: 999;
+      backdrop-filter: blur(6px);
+      align-items: flex-end;
+      justify-content: center;
+    }
+    .modal-backdrop.open { display: flex; }
+
+    .modal-sheet {
+      background: linear-gradient(160deg, #1A1035 0%, #0D0B1E 100%);
+      border: 1px solid rgba(201,168,76,0.3);
+      border-radius: 28px 28px 0 0;
+      padding: 32px 24px 48px;
+      width: 100%;
+      max-width: 480px;
+      animation: slideUp 0.3s ease;
+    }
+    @keyframes slideUp {
+      from { transform: translateY(100%); opacity: 0; }
+      to   { transform: translateY(0);    opacity: 1; }
+    }
+
+    .modal-handle {
+      width: 40px;
+      height: 4px;
+      border-radius: 2px;
+      background: rgba(201,168,76,0.35);
+      margin: 0 auto 24px;
+    }
+
+    .modal-title {
+      font-family: 'Cinzel', serif;
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--gold);
+      text-align: center;
+      margin-bottom: 6px;
+    }
+    .modal-subtitle {
+      font-size: 14px;
+      color: var(--mist);
+      text-align: center;
+      font-style: italic;
+      margin-bottom: 24px;
+    }
+
+    .modal-options {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .modal-option-btn {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 16px 18px;
+      border-radius: 14px;
+      border: 1.5px solid rgba(201,168,76,0.3);
+      background: rgba(45,27,105,0.3);
+      color: var(--moon);
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 16px;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.2s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .modal-option-btn:hover {
+      border-color: var(--gold);
+      background: rgba(201,168,76,0.1);
+    }
+    .modal-option-icon { font-size: 22px; }
+    .modal-option-label { flex: 1; }
+    .modal-option-arrow { color: var(--gold); opacity: 0.6; }
+
+    .modal-close {
+      width: 100%;
+      padding: 14px;
+      border-radius: 50px;
+      border: 1px solid rgba(201,168,76,0.25);
+      background: transparent;
+      color: var(--mist);
+      font-family: 'Cinzel', serif;
+      font-size: 12px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.2s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .modal-close:hover { border-color: rgba(201,168,76,0.5); color: var(--gold); }
+
+    /* ─── PULSE BADGE ───────────────────────────────────────── */
+    .live-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-family: 'Cinzel', serif;
+      font-size: 10px;
+      letter-spacing: 0.2em;
+      color: #7CFC9F;
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+    .live-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #7CFC9F;
+      animation: pulse 2s ease infinite;
+    }
+    @keyframes pulse {
+      0%,100% { opacity: 1; transform: scale(1); }
+      50%      { opacity: 0.4; transform: scale(0.8); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation: none !important; transition: none !important; }
+    }
+  </style>
+</head>
+<body>
+
+<canvas id="stars-canvas"></canvas>
+
+<div class="page">
+
+  <!-- ── HERO ── -->
+  <section class="hero">
+
+    <div class="live-badge">
+      <span class="live-dot"></span>
+      Bookings open
+    </div>
+
+    <div class="avatar-frame">
+      <div class="avatar-card">
+        <!--
+          INSTRUCTIONS: Replace the src below with your own photo.
+          Option A: Upload your photo to the same folder and change
+                    src to your filename, e.g. src="me.jpg"
+          Option B: Paste a direct image URL between the quotes.
+        -->
+        <img
+          src="K:\Projects\HTML\Tarot websit\pfpic.jpeg"
+          alt="Profile photo — replace me!"
+          id="profile-img"
+        />
+      </div>
+      <span class="glam-dot tl">✦</span>
+      <span class="glam-dot br">✦</span>
+    </div>
+
+    <!-- 🔤 REPLACE with your actual name -->
+    <h1 class="reader-name">Devis Soul</h1>
+    <!-- 🔤 REPLACE with your tagline -->
+    <p class="reader-title">Tarot · Intuitive Reader · Soul Guide</p>
+
+    <div class="ornament-divider">☽ ✦ ☾</div>
+
+    <!-- 🔤 REPLACE with your real bio -->
+    <p class="bio">
+      I read the cards so the stars can speak to you. Each session is a
+      sacred space — no judgement, just clarity. Whether you're seeking
+      direction in love, career, or the quiet corners of your soul,
+      the cards hold a message meant for you. 🌙
+    </p>
+
+    <!-- ── SOCIAL ICONS ── -->
+    <div class="social-row">
+
+      <!-- Instagram -->
+      <!-- 🔗 Replace # with your Instagram URL -->
+      <a href="#" class="social-btn" aria-label="Instagram" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/>
+        </svg>
+      </a>
+
+      <!-- WhatsApp -->
+      <!-- 🔗 Replace 919999999999 with your WhatsApp number (country code + number) -->
+      <a href="https://wa.me/+919845899558?text=Hi!%20I'd%20like%20to%20book%20a%20tarot%20reading%20session." class="social-btn" aria-label="WhatsApp" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 00-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+        </svg>
+      </a>
+
+      <!-- YouTube -->
+      <!-- 🔗 Replace # with your YouTube URL -->
+      <a href="#" class="social-btn" aria-label="YouTube" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path d="M23.498 6.186a3.016 3.016 0 00-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 00.502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 002.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 002.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+        </svg>
+      </a>
+
+      <!-- Telegram -->
+      <!-- 🔗 Replace yourusername with your Telegram handle -->
+      <a href="https://t.me/yourusername" class="social-btn" aria-label="Telegram" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/>
+        </svg>
+      </a>
+
+      <!-- Email -->
+      <!-- 🔗 Replace youremail@gmail.com with your real email -->
+      <a href="mailto:youremail@gmail.com" class="social-btn" aria-label="Email">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>
+        </svg>
+      </a>
+
+    </div>
+
+  </section>
+
+  <!-- ── BOOKING SECTION ── -->
+  <section class="booking-section">
+    <p class="section-eyebrow">Sacred Sessions</p>
+    <h2 class="section-title">Book Your Reading</h2>
+
+    <!-- VIDEO CALL -->
+    <div class="call-type-label">📹 Video Call</div>
+    <div class="price-grid">
+      <div class="price-card">
+        <div class="price-info">
+          <div class="price-duration"><span class="icon">🌙</span> 10 Minutes</div>
+          <div class="price-amount">₹ 333</div>
+        </div>
+        <button class="book-btn" onclick="openBooking('Video Call · 10 min · ₹333')">Book</button>
+      </div>
+      <div class="price-card">
+        <div class="price-info">
+          <div class="price-duration"><span class="icon">🌙</span> 15 Minutes</div>
+          <div class="price-amount">₹ 444</div>
+        </div>
+        <button class="book-btn" onclick="openBooking('Video Call · 15 min · ₹444')">Book</button>
+      </div>
+      <div class="price-card">
+        <div class="price-info">
+          <div class="price-duration"><span class="icon">🌙</span> 20 Minutes</div>
+          <div class="price-amount">₹ 555</div>
+        </div>
+        <button class="book-btn" onclick="openBooking('Video Call · 20 min · ₹555')">Book</button>
+      </div>
+      <div class="price-card">
+        <div class="price-info">
+          <div class="price-duration"><span class="icon">🌙</span> 25 Minutes</div>
+          <div class="price-amount">₹ 666</div>
+        </div>
+        <button class="book-btn" onclick="openBooking('Video Call · 25 min · ₹666')">Book</button>
+      </div>
+      <div class="price-card">
+        <div class="price-info">
+          <div class="price-duration"><span class="icon">✨</span> 30 Minutes</div>
+          <div class="price-amount">₹ 777</div>
+        </div>
+        <button class="book-btn" onclick="openBooking('Video Call · 30 min · ₹777')">Book</button>
+      </div>
+    </div>
+
+    <!-- VOICE CALL -->
+    <div class="call-type-label">🎙️ Voice Call</div>
+    <div class="price-grid">
+      <div class="price-card">
+        <div class="price-info">
+          <div class="price-duration"><span class="icon">🌙</span> 10 Minutes</div>
+          <div class="price-amount">₹ 222</div>
+        </div>
+        <button class="book-btn" onclick="openBooking('Voice Call · 10 min · ₹222')">Book</button>
+      </div>
+      <div class="price-card">
+        <div class="price-info">
+          <div class="price-duration"><span class="icon">🌙</span> 15 Minutes</div>
+          <div class="price-amount">₹ 333</div>
+        </div>
+        <button class="book-btn" onclick="openBooking('Voice Call · 15 min · ₹333')">Book</button>
+      </div>
+      <div class="price-card">
+        <div class="price-info">
+          <div class="price-duration"><span class="icon">🌙</span> 20 Minutes</div>
+          <div class="price-amount">₹ 444</div>
+        </div>
+        <button class="book-btn" onclick="openBooking('Voice Call · 20 min · ₹444')">Book</button>
+      </div>
+      <div class="price-card">
+        <div class="price-info">
+          <div class="price-duration"><span class="icon">🌙</span> 25 Minutes</div>
+          <div class="price-amount">₹ 555</div>
+        </div>
+        <button class="book-btn" onclick="openBooking('Voice Call · 25 min · ₹555')">Book</button>
+      </div>
+      <div class="price-card">
+        <div class="price-info">
+          <div class="price-duration"><span class="icon">✨</span> 30 Minutes</div>
+          <div class="price-amount">₹ 666</div>
+        </div>
+        <button class="book-btn" onclick="openBooking('Voice Call · 30 min · ₹666')">Book</button>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- ── WHAT TO EXPECT ── -->
+  <section class="expect-section">
+    <p class="section-eyebrow">The Experience</p>
+    <h2 class="section-title">What to Expect</h2>
+    <div class="expect-grid">
+      <div class="expect-card">
+        <div class="expect-icon">🃏</div>
+        <div class="expect-label">Intuitive Reads</div>
+        <p class="expect-desc">Every card pulled is a message the universe saved just for you</p>
+      </div>
+      <div class="expect-card">
+        <div class="expect-icon">🔒</div>
+        <div class="expect-label">Confidential</div>
+        <p class="expect-desc">Your session is a private, sacred space. No judgment, only truth</p>
+      </div>
+      <div class="expect-card">
+        <div class="expect-icon">🌙</div>
+        <div class="expect-label">Any Topic</div>
+        <p class="expect-desc">Love, career, purpose, decisions — ask what your heart wonders</p>
+      </div>
+      <div class="expect-card">
+        <div class="expect-icon">⚡</div>
+        <div class="expect-label">Quick Bookings</div>
+        <p class="expect-desc">Book via WhatsApp — responses within hours, not days</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── FOOTER ── -->
+  <footer class="footer">
+    <div class="ornament-divider" style="margin: 40px 0 20px;">☽ ✦ ☾</div>
+    <p>Made with ✨ for seekers of truth</p>
+    <!-- 🔗 Replace with your Instagram handle -->
+    <p style="margin-top:8px;"><a href="#" target="_blank">@themysticveil</a></p>
+  </footer>
+
+</div>
+
+<!-- ── BOOKING MODAL ── -->
+<div class="modal-backdrop" id="modal" role="dialog" aria-modal="true" aria-label="Booking options">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <p class="modal-title" id="modal-title">Book a Session</p>
+    <p class="modal-subtitle" id="modal-subtitle">Choose how you'd like to reach me</p>
+
+    <div class="modal-options">
+      <!-- 🔗 Replace 919999999999 with your WhatsApp number (country code + number, no spaces) -->
+      <a id="modal-whatsapp" href="#" class="modal-option-btn" target="_blank" rel="noopener">
+        <span class="modal-option-icon">💬</span>
+        <span class="modal-option-label">Book via WhatsApp</span>
+        <span class="modal-option-arrow">›</span>
+      </a>
+
+      <!-- 🔗 Replace with your Instagram DM link -->
+      <a id="modal-instagram" href="#" class="modal-option-btn" target="_blank" rel="noopener">
+        <span class="modal-option-icon">📸</span>
+        <span class="modal-option-label">Book via Instagram DM</span>
+        <span class="modal-option-arrow">›</span>
+      </a>
+
+      <!-- 🔗 Replace youremail@gmail.com with your email -->
+      <a id="modal-email" href="#" class="modal-option-btn">
+        <span class="modal-option-icon">✉️</span>
+        <span class="modal-option-label">Book via Email</span>
+        <span class="modal-option-arrow">›</span>
+      </a>
+    </div>
+
+    <button class="modal-close" onclick="closeBooking()">Cancel</button>
+  </div>
+</div>
+
+<script>
+/* ─── STARFIELD ─────────────────────────────────────────────── */
+(function () {
+  const c = document.getElementById('stars-canvas');
+  const ctx = c.getContext('2d');
+  let W, H, stars = [];
+
+  function resize() {
+    W = c.width  = window.innerWidth;
+    H = c.height = window.innerHeight;
+  }
+
+  function makeStar() {
+    return {
+      x: Math.random() * W,
+      y: Math.random() * H,
+      r: Math.random() * 1.3 + 0.2,
+      a: Math.random(),
+      speed: Math.random() * 0.004 + 0.001,
+      phase: Math.random() * Math.PI * 2
+    };
+  }
+
+  function init() {
+    resize();
+    stars = Array.from({ length: 160 }, makeStar);
+  }
+
+  function draw(t) {
+    ctx.clearRect(0, 0, W, H);
+    stars.forEach(s => {
+      const alpha = 0.3 + 0.5 * Math.sin(s.phase + t * s.speed);
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(240,235,248,${alpha})`;
+      ctx.fill();
+    });
+    requestAnimationFrame(draw);
+  }
+
+  window.addEventListener('resize', resize);
+  init();
+  requestAnimationFrame(draw);
+})();
+
+/* ─── BOOKING MODAL ─────────────────────────────────────────── */
+// 🔧 UPDATE THESE THREE CONSTANTS with your real details:
+const WHATSAPP_NUMBER  = '+919845899558';         // your number with country code
+const INSTAGRAM_HANDLE = 'devis_soul';         // without @
+const EMAIL_ADDRESS    = 'karan.n.londe@gmail.com';   // your email
+
+function openBooking(session) {
+  const modal    = document.getElementById('modal');
+  const subtitle = document.getElementById('modal-subtitle');
+  subtitle.textContent = session;
+
+  const waMsg = encodeURIComponent(
+    `Hi! 🌙 I'd like to book a tarot reading session.\n\nSession: ${session}\n\nPlease let me know your available slots!`
+  );
+  const emailSubject = encodeURIComponent(`Tarot Reading Booking — ${session}`);
+  const emailBody    = encodeURIComponent(
+    `Hello!\n\nI'd like to book a tarot reading session.\n\nSession: ${session}\n\nPlease share your available time slots.\n\nThank you!`
+  );
+
+  document.getElementById('modal-whatsapp').href  = `https://wa.me/${WHATSAPP_NUMBER}?text=${waMsg}`;
+  document.getElementById('modal-instagram').href = `https://instagram.com/${INSTAGRAM_HANDLE}`;
+  document.getElementById('modal-email').href     = `mailto:${EMAIL_ADDRESS}?subject=${emailSubject}&body=${emailBody}`;
+
+  modal.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeBooking() {
+  document.getElementById('modal').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+// close on backdrop click
+document.getElementById('modal').addEventListener('click', function (e) {
+  if (e.target === this) closeBooking();
+});
+
+// close on ESC
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeBooking(); });
+</script>
+</body>
+</html>
